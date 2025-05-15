@@ -1,0 +1,67 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset (replace with your dataset path)
+# For illustration, I am creating a dummy dataframe
+data = {
+    'Weather': ['Sunny', 'Rainy', 'Foggy', 'Sunny', 'Rainy', 'Sunny', 'Foggy', 'Sunny'],
+    'Time_of_day': ['Morning', 'Afternoon', 'Evening', 'Morning', 'Evening', 'Afternoon', 'Evening', 'Morning'],
+    'Day_of_week': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday'],
+    'Road_condition': ['Dry', 'Wet', 'Wet', 'Dry', 'Wet', 'Dry', 'Wet', 'Dry'],
+    'Speed_limit': [60, 30, 50, 60, 30, 50, 30, 60],
+    'Accident_occurred': [0, 1, 0, 0, 1, 0, 1, 0]  # 0 = No Accident, 1 = Accident
+}
+
+# Convert the data to a DataFrame
+df = pd.DataFrame(data)
+
+# Encode categorical features
+label_encoder = LabelEncoder()
+
+df['Weather'] = label_encoder.fit_transform(df['Weather'])
+df['Time_of_day'] = label_encoder.fit_transform(df['Time_of_day'])
+df['Day_of_week'] = label_encoder.fit_transform(df['Day_of_week'])
+df['Road_condition'] = label_encoder.fit_transform(df['Road_condition'])
+
+# Features and target variable
+X = df.drop('Accident_occurred', axis=1)  # Features
+y = df['Accident_occurred']  # Target variable
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize the classifier (Random Forest in this case)
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model
+clf.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = clf.predict(X_test)
+
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nConfusion Matrix:")
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['No Accident', 'Accident'], yticklabels=['No Accident', 'Accident'])
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Feature Importance
+feature_importances = clf.feature_importances_
+features = X.columns
+feature_df = pd.DataFrame({'Feature': features, 'Importance': feature_importances})
+feature_df = feature_df.sort_values(by='Importance', ascending=False)
+print("\nFeature Importances:")
+print(feature_df)
